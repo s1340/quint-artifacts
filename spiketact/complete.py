@@ -47,13 +47,13 @@ import numpy as np
 # Import from the existing scripts (same directory)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from spiketact_prototype import (
+from prototype import (
     generate_pressure_field, MechanoreceptorEncoder, spike_to_token,
     feature_vector, LinearClassifier, PATTERN_TYPES, DURATION_MS,
     token_stats, N_TRANSDUCERS, N_RECEPTORS, N_SPIKE_CHANNELS,
     N_SPATIAL_GROUPS, BIN_SIZE, QUANT_LEVELS, RECEPTOR_NAMES
 )
-from spiketact_affective import (
+from affective import (
     simulate_ct_afferents, compute_valence_arousal,
     generate_affective_stimuli, ct_velocity_tuning,
     ct_temperature_tuning, ct_force_tuning,
@@ -394,7 +394,7 @@ def demo_verify():
     print()
 
     # Discriminative verification
-    print("1. DISCRIMINATIVE PATHWAY (from spiketact_prototype.py)")
+    print("1. DISCRIMINATIVE PATHWAY (from prototype.py)")
     print("-" * 50)
     np.random.seed(42)
     encoder = MechanoreceptorEncoder()
@@ -432,9 +432,9 @@ def demo_verify():
     print()
 
     # Affective verification
-    print("2. AFFECTIVE PATHWAY (from spiketact_affective.py)")
+    print("2. AFFECTIVE PATHWAY (from affective.py)")
     print("-" * 50)
-    from spiketact_affective import verify_ct_properties
+    from affective import verify_ct_properties
     ct_results = verify_ct_properties()
     n_pass = sum(1 for r in ct_results if r['passed'])
     for r in ct_results:

@@ -31,7 +31,7 @@ from pathlib import Path
 
 # Import from the original prototype
 sys.path.insert(0, str(Path(__file__).parent))
-from spiketact_prototype import (
+from prototype import (
     MechanoreceptorEncoder, spike_to_token, feature_vector,
     LinearClassifier, generate_pressure_field, _gaussian_2d,
     POSITIONS, X_GRID, Y_GRID,

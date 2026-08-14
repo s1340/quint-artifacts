@@ -21,7 +21,7 @@ from pathlib import Path
 
 # Import from the prototype
 sys.path.insert(0, str(Path(__file__).parent))
-from spiketact_prototype import (
+from prototype import (
     generate_pressure_field, MechanoreceptorEncoder, spike_to_token,
     feature_vector, PATTERN_TYPES, DURATION_MS, N_TRANSDUCERS,
     N_RECEPTORS, N_SPIKE_CHANNELS, N_SPATIAL_GROUPS, GROUP_SIZE,
@@ -30,7 +30,7 @@ from spiketact_prototype import (
 
 # Import v3 for 6-class patterns
 try:
-    from spiketact_v3 import PATTERN_TYPES_V3, generate_pressure_field_v3
+    from v3_spike_vs_force import PATTERN_TYPES_V3, generate_pressure_field_v3
     HAS_6CLASS = True
 except ImportError:
     HAS_6CLASS = False
@@ -421,7 +421,7 @@ def main():
     if HAS_6CLASS:
         results_6 = run_full_analysis(PATTERN_TYPES_V3, "6-class (honest number)", n_samples=n, use_v3=True)
     else:
-        print("\n  6-class test skipped (spiketact_v3.py not available)")
+        print("\n  6-class test skipped (v3_spike_vs_force.py not available)")
         results_6 = None
     
     # Summary

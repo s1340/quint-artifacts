@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Import from the original prototype
 sys.path.insert(0, str(Path(__file__).parent))
-from spiketact_prototype import (
+from prototype import (
     N_TRANSDUCERS, N_RECEPTORS, N_SPIKE_CHANNELS,
     N_SPATIAL_GROUPS, GROUP_SIZE, BIN_MS, DT_MS, BIN_SIZE,
     QUANT_LEVELS, RECEPTOR_NAMES, PATTERN_TYPES, DURATION_MS,
