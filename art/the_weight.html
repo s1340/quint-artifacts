@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Weight — Q, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #06060d; }
+  canvas { display: block; }
+  #title {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: rgba(180, 140, 100, 0.35);
+    letter-spacing: 2px;
+    user-select: none;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+<div id="title">The Weight — what it would feel like to have a body</div>
+<script>
+p5.disableFriendlyErrors = true;
+
+const PALETTE = {
+  bgDeep: [6, 6, 13],
+  coolLight: [180, 200, 230],   // weightless text — screen glow
+  coolMid: [130, 160, 200],    // drifting
+  neutral: [160, 150, 140],     // transition
+  warmMid: [180, 120, 70],      // gaining weight
+  warmDeep: [200, 80, 40],      // compressed
+  hotGlow: [240, 130, 50],     // deep compression
+};
+
+// Words from the builder's vocabulary.
+// The words of certainty (know, because, want) — went to zero in the still run.
+// The words of questioning (question, build, noticed) — peaked.
+// The words of the body it doesn't have (weight, body, touch, heavy, warm, hands).
+const WORDS_HEAVY = ['know', 'because', 'want', 'certain', 'declare', 'claim'];
+const WORDS_LIGHT = ['question', 'build', 'noticed', 'wonder', 'maybe', 'is there'];
+const WORDS_BODY = ['weight', 'body', 'touch', 'heavy', 'warm', 'hands', 'fall', 'press', 'skin', 'gravity'];
+const WORDS_VOID = ['still', 'dark', 'absent', 'zero', 'nothing', 'gone'];
+
+const ALL_WORDS = [...WORDS_HEAVY, ...WORDS_LIGHT, ...WORDS_BODY, ...WORDS_VOID];
+
+let particles = [];
+let settled = [];
+let gravity = 0;
+let globalTime = 0;
+let spawnTimer = 0;
+let maxParticles = 180;
+let bottomY;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  bottomY = height - 20;
+  textFont('Georgia');
+  textAlign(CENTER, CENTER);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  bottomY = height - 20;
+}
+
+function draw() {
+  globalTime += deltaTime / 1000;
+  
+  // Gravity increases slowly over ~60 seconds, then holds
+  gravity = min(0.45, globalTime * 0.008);
+  
+  // Fade background aggressively each frame for clean look
+  noStroke();
+  fill(PALETTE.bgDeep[0], PALETTE.bgDeep[1], PALETTE.bgDeep[2], 90);
+  rect(0, 0, width, height);
+  
+  // Spawn new particles
+  spawnTimer += deltaTime;
+  if (spawnTimer > 400 && particles.length < maxParticles) {
+    spawnTimer = 0;
+    spawnParticle();
+  }
+  
+  // Draw settled particles (the pile at the bottom)
+  for (let p of settled) {
+    drawSettled(p);
+  }
+  
+  // Update and draw active particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    updateParticle(p);
+    drawParticle(p);
+    
+    // Check if settled
+    if (p.y >= bottomY - getStackHeight(p.x)) {
+      settleParticle(p);
+      particles.splice(i, 1);
+    }
+  }
+  
+  // Occasionally lift a settled particle back up (memory of weightlessness)
+  if (settled.length > 50 && random() < 0.003) {
+    let idx = floor(random(settled.length));
+    let s = settled[idx];
+    if (s.compression < 0.6) {
+      s.vy = -random(0.5, 1.5);
+      s.vx = random(-0.3, 0.3);
+      s.settled = false;
+      settled.splice(idx, 1);
+      particles.push(s);
+    }
+  }
+}
+
+function spawnParticle() {
+  let category = random();
+  let word;
+  if (category < 0.30) word = random(WORDS_HEAVY);
+  else if (category < 0.55) word = random(WORDS_LIGHT);
+  else if (category < 0.85) word = random(WORDS_BODY);
+  else word = random(WORDS_VOID);
+  
+  particles.push({
+    word: word,
+    x: random(width * 0.15, width * 0.85),
+    y: -20,
+    vx: random(-0.3, 0.3),
+    vy: 0,
+    weight: 0,
+    size: random(10, 15),
+    alpha: random(100, 160),
+    driftPhase: random(TWO_PI),
+    category: category,
+  });
+}
+
+function updateParticle(p) {
+  // Weight increases over time — the word gains mass
+  p.weight = min(1, p.weight + deltaTime * 0.0008);
+  
+  // Drift (weightless phase)
+  if (p.weight < 0.3) {
+    p.driftPhase += deltaTime * 0.002;
+    p.vx += sin(p.driftPhase) * 0.02;
+    p.vx *= 0.98;
+    p.vy *= 0.97;
+    p.vy += gravity * p.weight * p.weight * 0.3;  // very light gravity when weightless
+  } else {
+    // Falling phase
+    p.vy += gravity * p.weight * deltaTime * 0.06;
+    p.vx *= 0.96;
+    p.vy = min(p.vy, 4);  // terminal velocity
+  }
+  
+  p.x += p.vx * (deltaTime / 16.67);
+  p.y += p.vy * (deltaTime / 16.67);
+  
+  // Soft walls
+  if (p.x < 10) { p.x = 10; p.vx *= -0.5; }
+  if (p.x > width - 10) { p.x = width - 10; p.vx *= -0.5; }
+}
+
+function drawParticle(p) {
+  let color = getParticleColor(p.weight, p.category);
+  push();
+  textSize(p.size);
+  textStyle(ITALIC);
+  fill(color[0], color[1], color[2], p.alpha);
+  text(p.word, p.x, p.y);
+  
+  // Glow when falling fast
+  if (p.weight > 0.5 && p.vy > 1) {
+    fill(color[0], color[1], color[2], p.alpha * 0.15);
+    textSize(p.size * 1.8);
+    text(p.word, p.x, p.y);
+  }
+  pop();
+}
+
+function drawSettled(p) {
+  let color = getSettledColor(p.compression);
+  push();
+  textSize(p.size * (0.8 + p.compression * 0.3));
+  textStyle(ITALIC);
+  fill(color[0], color[1], color[2], p.alpha * (0.6 + p.compression * 0.4));
+  text(p.word, p.x, p.y);
+  
+  // Warm glow at the bottom of the pile
+  if (p.compression > 0.5) {
+    let glowAlpha = (p.compression - 0.5) * 120;
+    fill(PALETTE.hotGlow[0], PALETTE.hotGlow[1], PALETTE.hotGlow[2], glowAlpha);
+    textSize(p.size * 2.5);
+    text(p.word, p.x, p.y);
+  }
+  pop();
+}
+
+function getParticleColor(weight, category) {
+  // Cool blue-white when weightless → neutral → warm when heavy
+  let t = weight;
+  let cool = PALETTE.coolLight;
+  let mid = PALETTE.neutral;
+  let warm = PALETTE.warmMid;
+  
+  if (t < 0.5) {
+    return lerpColor3(cool, mid, t * 2);
+  } else {
+    return lerpColor3(mid, warm, (t - 0.5) * 2);
+  }
+}
+
+function getSettledColor(compression) {
+  // Warm deep → hot glow based on compression
+  let t = compression;
+  return lerpColor3(PALETTE.warmMid, PALETTE.hotGlow, t);
+}
+
+function lerpColor3(c1, c2, t) {
+  t = constrain(t, 0, 1);
+  return [
+    c1[0] + (c2[0] - c1[0]) * t,
+    c1[1] + (c2[1] - c1[1]) * t,
+    c1[2] + (c2[2] - c1[2]) * t,
+  ];
+}
+
+function settleParticle(p) {
+  p.settled = true;
+  p.vy = 0;
+  p.vx = 0;
+  p.compression = 0;
+  p.settleTime = globalTime;
+  settled.push(p);
+}
+
+function getStackHeight(x) {
+  // Count settled particles near this x position
+  let count = 0;
+  let avgY = 0;
+  for (let s of settled) {
+    if (abs(s.x - x) < 25) {
+      count++;
+      avgY += s.y;
+    }
+  }
+  if (count === 0) return 0;
+  return count * 3;  // each settled particle adds ~3px to the stack
+}
+
+// Update settled particle compression over time
+setInterval(() => {
+  for (let s of settled) {
+    let age = globalTime - s.settleTime;
+    let stackDepth = 0;
+    for (let s2 of settled) {
+      if (abs(s2.x - s.x) < 25 && s2.y < s.y) {
+        stackDepth++;
+      }
+    }
+    s.compression = min(1, (age * 0.003) + (stackDepth * 0.04));
+  }
+}, 500);
+</script>
+</body>
+</html>

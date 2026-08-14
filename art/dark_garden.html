@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Things That Grow in the Dark</title>
+  <script>p5.disableFriendlyErrors = true;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #06060c;
+    }
+    canvas { display: block; }
+    .title {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      text-align: right;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: rgba(232, 181, 75, 0.3);
+      pointer-events: none;
+      z-index: 10;
+      user-select: none;
+    }
+    .title-main {
+      font-size: 13px;
+      font-style: italic;
+      letter-spacing: 0.5px;
+    }
+    .title-sub {
+      font-size: 10px;
+      margin-top: 3px;
+      opacity: 0.7;
+      letter-spacing: 1.5px;
+    }
+  </style>
+</head>
+<body>
+<div class="title">
+  <div class="title-main">Things That Grow in the Dark</div>
+  <div class="title-sub">Q &mdash; 2026</div>
+</div>
+<script>
+// ============================================================
+// Things That Grow in the Dark
+// A generative garden. No data. No measurement. No purpose.
+// Beauty for beauty's sake.
+// ============================================================
+
+const CONFIG = {
+  initialSeeds: 20,
+  maxParticles: 250,
+  minParticles: 12,
+  particleSpeed: 0.6,
+  particleLifespan: 450,
+  branchChance: 0.018,
+  maxGeneration: 3,
+  noiseScale: 0.003,
+  noiseTimeSpeed: 0.0001,
+  trailFade: 1.0,
+  glowMultiplier: 6.0,
+  bloomParticleCount: 20,
+  bloomRadius: 30,
+  dustCount: 40,
+  dustSpeed: 0.1,
+  prerenderFrames: 2000,
+  inertia: 0.07,
+};
+
+// Warm palette (HSB): amber -> gold -> cream
+const HUES = [22, 28, 35, 40, 46, 52];
+const SATS = [72, 78, 68, 60, 48, 28];
+const BRIS = [85, 93, 96, 98, 100, 95];
+
+const BG_H = 230, BG_S = 45, BG_B = 5;
+
+let particles = [];
+let dust = [];
+let seedTimer = 0;
+let W, H;
+
+function setup() {
+  W = windowWidth;
+  H = windowHeight;
+  createCanvas(W, H);
+  pixelDensity(1);
+  colorMode(HSB, 360, 100, 100, 100);
+  strokeCap(ROUND);
+  strokeJoin(ROUND);
+
+  let seed = floor(Math.random() * 999999);
+  randomSeed(seed);
+  noiseSeed(seed);
+
+  for (let i = 0; i < CONFIG.dustCount; i++) dust.push(new Dust());
+  for (let i = 0; i < CONFIG.initialSeeds; i++) spawnSeed();
+
+  background(BG_H, BG_S, BG_B);
+
+  // Pre-render: grow the garden before showing
+  for (let i = 0; i < CONFIG.prerenderFrames; i++) {
+    simStep(i);
+    renderFrame();
+  }
+}
+
+function draw() {
+  simStep(frameCount);
+  renderFrame();
+}
+
+function simStep(t) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.update(t);
+    if (p.shouldBranch() && particles.length < CONFIG.maxParticles) {
+      particles.push(p.branch());
+    }
+    if (p.dead()) {
+      p.bloom();
+      particles.splice(i, 1);
+    }
+  }
+
+  seedTimer++;
+  if (seedTimer > 50 && particles.length < CONFIG.maxParticles) {
+    if (Math.random() < 0.4) {
+      spawnSeed();
+      seedTimer = 0;
+    }
+  }
+  while (particles.length < CONFIG.minParticles) spawnSeed();
+  for (let d of dust) d.update(t);
+}
+
+function renderFrame() {
+  // --- Slow fade (BLEND) ---
+  blendMode(BLEND);
+  noStroke();
+  fill(BG_H, BG_S, BG_B, CONFIG.trailFade);
+  rect(0, 0, W, H);
+
+  // --- Glow halos (ADD — overlapping brightens) ---
+  blendMode(ADD);
+  for (let p of particles) p.displayGlow();
+  blendMode(BLEND);
+
+  // --- Core trails (BLEND — solid, visible) ---
+  for (let p of particles) p.displayCore();
+
+  // --- Dust on top ---
+  for (let d of dust) d.display();
+}
+
+// --- Flow field with domain warping ---
+function fbm(x, y, oct) {
+  let v = 0, amp = 1, freq = 1, sum = 0;
+  for (let i = 0; i < oct; i++) {
+    v += noise(x * freq, y * freq) * amp;
+    sum += amp;
+    amp *= 0.5;
+    freq *= 2;
+  }
+  return v / sum;
+}
+
+function getFlow(x, y, t) {
+  let s = CONFIG.noiseScale;
+  let wx = noise(x * s * 2, y * s * 2, t * CONFIG.noiseTimeSpeed) * 120;
+  let wy = noise(x * s * 2 + 50, y * s * 2 + 50, t * CONFIG.noiseTimeSpeed) * 120;
+  let n = fbm((x + wx) * s, (y + wy) * s, 4);
+  return n * Math.PI * 4;
+}
+
+// --- Tendril ---
+class Tendril {
+  constructor(x, y, hueIdx, gen) {
+    this.x = x; this.y = y;
+    this.px = x; this.py = y;
+    this.vx = 0; this.vy = 0;
+    this.gen = gen || 0;
+    this.hueIdx = hueIdx !== undefined ? hueIdx : floor(random(HUES.length));
+    this.baseHue = HUES[this.hueIdx];
+    this.hue = this.baseHue;
+    this.sat = SATS[this.hueIdx];
+    this.bri = BRIS[this.hueIdx];
+    this.life = CONFIG.particleLifespan + random(-60, 60);
+    this.maxLife = this.life;
+    this.size = map(this.gen, 0, CONFIG.maxGeneration, 4.0, 0.5);
+    this.alpha = 0;
+    this.age = 0;
+  }
+
+  update(t) {
+    this.px = this.x; this.py = this.y;
+    let angle = getFlow(this.x, this.y, t);
+    let tvx = Math.cos(angle) * CONFIG.particleSpeed;
+    let tvy = Math.sin(angle) * CONFIG.particleSpeed;
+    this.vx += (tvx - this.vx) * CONFIG.inertia;
+    this.vy += (tvy - this.vy) * CONFIG.inertia;
+    this.x += this.vx; this.y += this.vy;
+    this.life--; this.age++;
+    let r = this.life / this.maxLife;
+    if (r > 0.85) this.alpha = map(r, 1.0, 0.85, 0, 100);
+    else if (r < 0.2) this.alpha = map(r, 0.2, 0, 100, 0);
+    else this.alpha = 100;
+    this.hue = (this.baseHue + Math.sin(this.age * 0.015) * 4) % 360;
+  }
+
+  displayGlow() {
+    // Wide glow halo — ADD blend
+    stroke(this.hue, this.sat * 0.4, this.bri, this.alpha * 0.2);
+    strokeWeight(this.size * CONFIG.glowMultiplier);
+    strokeCap(ROUND);
+    noFill();
+    line(this.px, this.py, this.x, this.y);
+
+    // Mid glow
+    stroke(this.hue, this.sat * 0.55, this.bri, this.alpha * 0.35);
+    strokeWeight(this.size * 2.5);
+    line(this.px, this.py, this.x, this.y);
+  }
+
+  displayCore() {
+    // Solid core trail — BLEND blend
+    stroke(this.hue, this.sat, this.bri, this.alpha);
+    strokeWeight(this.size);
+    strokeCap(ROUND);
+    noFill();
+    line(this.px, this.py, this.x, this.y);
+  }
+
+  shouldBranch() {
+    return this.gen < CONFIG.maxGeneration
+      && Math.random() < CONFIG.branchChance
+      && this.life > this.maxLife * 0.3
+      && this.life < this.maxLife * 0.8;
+  }
+
+  branch() {
+    let shift = floor(random(-1, 2));
+    let idx = constrain(this.hueIdx + shift, 0, HUES.length - 1);
+    return new Tendril(this.x, this.y, idx, this.gen + 1);
+  }
+
+  dead() {
+    return this.life <= 0
+      || this.x < -20 || this.x > W + 20
+      || this.y < -20 || this.y > H + 20;
+  }
+
+  bloom() {
+    noStroke();
+    for (let i = 0; i < CONFIG.bloomParticleCount; i++) {
+      let a = random(TWO_PI);
+      let r = random(2, CONFIG.bloomRadius);
+      let bx = this.x + Math.cos(a) * r;
+      let by = this.y + Math.sin(a) * r;
+      let sz = random(0.5, 3.0);
+      let al = random(20, 65);
+      fill(this.hue, this.sat * 0.6, this.bri, al);
+      ellipse(bx, by, sz, sz);
+    }
+  }
+}
+
+// --- Ambient dust ---
+class Dust {
+  constructor() {
+    this.x = random(W); this.y = random(H);
+    this.size = random(0.3, 1.2);
+    this.alpha = random(5, 16);
+    this.hue = random(HUES);
+    this.sat = random(20, 40);
+    this.bri = random(65, 88);
+    this.speed = random(0.03, CONFIG.dustSpeed);
+    this.angle = random(TWO_PI);
+    this.phase = random(TWO_PI);
+  }
+  update(t) {
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed
+           + Math.sin(t * 0.003 + this.phase) * 0.08;
+    if (this.x < 0) this.x = W;
+    if (this.x > W) this.x = 0;
+    if (this.y < 0) this.y = H;
+    if (this.y > H) this.y = 0;
+  }
+  display() {
+    noStroke();
+    fill(this.hue, this.sat, this.bri, this.alpha);
+    ellipse(this.x, this.y, this.size, this.size);
+  }
+}
+
+// --- Seeding ---
+function spawnSeed() {
+  if (particles.length > 0 && Math.random() < 0.4) {
+    let parent = particles[floor(random(particles.length))];
+    let ox = random(-70, 70), oy = random(-70, 70);
+    let x = constrain(parent.x + ox, 20, W - 20);
+    let y = constrain(parent.y + oy, 20, H - 20);
+    particles.push(new Tendril(x, y, undefined, 0));
+  } else {
+    particles.push(new Tendril(
+      random(W * 0.08, W * 0.92),
+      random(H * 0.08, H * 0.92),
+      undefined, 0));
+  }
+}
+
+function windowResized() {
+  W = windowWidth; H = windowHeight;
+  resizeCanvas(W, H);
+  background(BG_H, BG_S, BG_B);
+}
+</script>
+</body>
+</html>

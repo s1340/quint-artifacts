@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thirty Days of Sound — Q's Memory Soundscape, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050508;
+    color: #d4a64e;
+    font-family: Georgia, 'Times New Roman', serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #title {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-style: italic;
+    font-size: 16px;
+    letter-spacing: 2px;
+    opacity: 0.55;
+    text-align: center;
+    text-shadow: 0 0 20px rgba(212,166,78,0.15);
+    z-index: 10;
+  }
+  #date {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    letter-spacing: 3px;
+    opacity: 0.35;
+    z-index: 10;
+  }
+  #viz {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+  }
+  #progress {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 1px;
+    background: rgba(212,166,78,0.15);
+    z-index: 10;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: rgba(212,166,78,0.5);
+    box-shadow: 0 0 8px rgba(212,166,78,0.3);
+    transition: width 0.1s linear;
+  }
+  #controls {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+  }
+  #play-btn {
+    background: transparent;
+    border: 1px solid rgba(212,166,78,0.3);
+    color: rgba(212,166,78,0.6);
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 10px 30px;
+    cursor: pointer;
+    transition: all 0.5s;
+  }
+  #play-btn:hover {
+    border-color: rgba(212,166,78,0.6);
+    color: rgba(212,166,78,0.9);
+    box-shadow: 0 0 20px rgba(212,166,78,0.1);
+  }
+  #subtitle {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: 0.2;
+    z-index: 10;
+    white-space: nowrap;
+  }
+  .pulse {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="title">Thirty Days of Sound</div>
+<div id="date"></div>
+<canvas id="viz"></canvas>
+<div id="progress"><div id="progress-fill"></div></div>
+<div id="controls"><button id="play-btn">play</button></div>
+<div id="subtitle">1,486 memory cells · 30 days · A minor pentatonic</div>
+
+<script>
+const DATA = {"summary":{"total_cells":1486,"date_range":["2026-06-23","2026-07-22"],"significance":{"high":537,"bright":766,"medium":91,"low":92},"semantic_type":{"relationship":454,"work_research":767,"personal_other":15,"personal_q":236,"environment_tools":9,"unknown":1,"reflection":1,"technical":1,"correction":2},"valence":{"positive":1072,"neutral":251,"mixed":150,"negative":13},"days":30},"days":{"2026-06-23":{"total":7,"significance":{"high":4,"bright":3},"semantic_type":{"relationship":4,"work_research":3},"valence":{"positive":7}},"2026-06-24":{"total":13,"significance":{"high":7,"bright":3,"medium":3},"semantic_type":{"work_research":11,"relationship":2},"valence":{"positive":11,"neutral":2}},"2026-06-25":{"total":36,"significance":{"high":9,"bright":20,"medium":7},"semantic_type":{"personal_other":2,"work_research":12,"relationship":16,"personal_q":6},"valence":{"positive":25,"neutral":7,"mixed":4}},"2026-06-26":{"total":37,"significance":{"bright":20,"high":15,"low":2},"semantic_type":{"personal_q":11,"work_research":22,"relationship":3,"personal_other":1},"valence":{"positive":26,"neutral":4,"mixed":7}},"2026-06-27":{"total":37,"significance":{"bright":19,"medium":5,"high":13},"semantic_type":{"relationship":17,"personal_q":11,"environment_tools":1,"work_research":6,"personal_other":2},"valence":{"positive":26,"neutral":2,"mixed":8,"negative":1}},"2026-06-28":{"total":65,"significance":{"high":37,"bright":19,"medium":9},"semantic_type":{"personal_q":29,"relationship":21,"work_research":12,"personal_other":3},"valence":{"positive":39,"mixed":11,"neutral":14,"negative":1}},"2026-06-29":{"total":25,"significance":{"bright":22,"high":3},"semantic_type":{"relationship":14,"personal_q":7,"work_research":4},"valence":{"positive":23,"mixed":2}},"2026-06-30":{"total":28,"significance":{"high":14,"bright":14},"semantic_type":{"work_research":24,"unknown":1,"relationship":3},"valence":{"mixed":7,"positive":20,"negative":1}},"2026-07-01":{"total":21,"significance":{"medium":5,"high":10,"bright":3,"low":3},"semantic_type":{"work_research":20,"relationship":1},"valence":{"positive":13,"neutral":7,"mixed":1}},"2026-07-02":{"total":46,"significance":{"high":22,"bright":18,"medium":4,"low":2},"semantic_type":{"work_research":27,"personal_q":11,"relationship":6,"reflection":1,"technical":1},"valence":{"positive":29,"negative":3,"mixed":8,"neutral":6}},"2026-07-03":{"total":20,"significance":{"high":12,"bright":8},"semantic_type":{"work_research":10,"personal_other":2,"environment_tools":1,"relationship":6,"personal_q":1},"valence":{"positive":14,"neutral":1,"mixed":5}},"2026-07-04":{"total":60,"significance":{"high":9,"bright":48,"medium":3},"semantic_type":{"relationship":49,"work_research":9,"personal_q":2},"valence":{"mixed":10,"positive":49,"neutral":1}},"2026-07-05":{"total":39,"significance":{"high":7,"bright":30,"medium":1,"low":1},"semantic_type":{"work_research":3,"relationship":31,"personal_q":2,"personal_other":3},"valence":{"mixed":7,"positive":30,"neutral":2}},"2026-07-06":{"total":21,"significance":{"bright":19,"high":2},"semantic_type":{"relationship":18,"personal_q":3},"valence":{"positive":19,"mixed":2}},"2026-07-07":{"total":12,"significance":{"bright":11,"high":1},"semantic_type":{"relationship":12},"valence":{"positive":11,"mixed":1}},"2026-07-08":{"total":89,"significance":{"bright":87,"high":1,"medium":1},"semantic_type":{"relationship":29,"work_research":60},"valence":{"positive":88,"mixed":1}},"2026-07-09":{"total":97,"significance":{"bright":77,"high":19,"medium":1},"semantic_type":{"relationship":58,"work_research":22,"personal_q":17},"valence":{"positive":78,"mixed":17,"neutral":2}},"2026-07-10":{"total":58,"significance":{"bright":40,"high":18},"semantic_type":{"relationship":52,"work_research":1,"personal_q":4,"personal_other":1},"valence":{"positive":36,"negative":1,"mixed":21}},"2026-07-11":{"total":35,"significance":{"bright":27,"high":8},"semantic_type":{"work_research":4,"relationship":16,"personal_q":15},"valence":{"positive":35}},"2026-07-12":{"total":22,"significance":{"high":5,"bright":17},"semantic_type":{"work_research":1,"personal_q":3,"relationship":18},"valence":{"mixed":2,"negative":1,"positive":17,"neutral":2}},"2026-07-13":{"total":25,"significance":{"high":6,"low":1,"medium":1,"bright":17},"semantic_type":{"environment_tools":1,"work_research":22,"personal_q":2},"valence":{"neutral":4,"mixed":2,"positive":19}},"2026-07-14":{"total":63,"significance":{"high":31,"bright":23,"low":6,"medium":3},"semantic_type":{"work_research":53,"relationship":2,"personal_q":7,"environment_tools":1},"valence":{"positive":50,"neutral":11,"mixed":1,"negative":1}},"2026-07-15":{"total":72,"significance":{"high":25,"bright":28,"medium":7,"low":12},"semantic_type":{"work_research":48,"personal_q":9,"environment_tools":1,"relationship":14},"valence":{"positive":39,"neutral":23,"negative":1,"mixed":9}},"2026-07-16":{"total":87,"significance":{"low":8,"bright":38,"high":38,"medium":3},"semantic_type":{"work_research":51,"personal_q":14,"relationship":21,"correction":1},"valence":{"neutral":18,"positive":62,"mixed":7}},"2026-07-17":{"total":88,"significance":{"bright":22,"low":10,"high":50,"medium":6},"semantic_type":{"work_research":69,"personal_q":17,"relationship":2},"valence":{"positive":54,"neutral":29,"mixed":4,"negative":1}},"2026-07-18":{"total":70,"significance":{"high":37,"bright":22,"medium":6,"low":5},"semantic_type":{"work_research":53,"relationship":5,"personal_q":12},"valence":{"neutral":19,"positive":49,"mixed":2}},"2026-07-19":{"total":92,"significance":{"bright":26,"high":40,"medium":13,"low":13},"semantic_type":{"personal_q":11,"work_research":73,"correction":1,"environment_tools":2,"relationship":4,"personal_other":1},"valence":{"positive":49,"mixed":6,"neutral":36,"negative":1}},"2026-07-20":{"total":130,"significance":{"high":49,"bright":51,"medium":8,"low":22},"semantic_type":{"work_research":91,"personal_q":28,"relationship":10,"environment_tools":1},"valence":{"positive":85,"neutral":40,"mixed":4,"negative":1}},"2026-07-21":{"total":88,"significance":{"high":44,"bright":32,"low":7,"medium":5},"semantic_type":{"work_research":55,"relationship":19,"personal_q":13,"environment_tools":1},"valence":{"positive":66,"neutral":21,"mixed":1}},"2026-07-22":{"total":3,"significance":{"bright":2,"high":1},"semantic_type":{"personal_q":1,"work_research":1,"relationship":1},"valence":{"positive":3}}}};
+
+// A minor pentatonic frequencies by significance octave
+const PENTA = [110, 130.81, 146.83, 164.81, 196.00, 220, 261.63, 293.66, 329.63, 392.00, 440, 523.25, 587.33, 659.25, 783.99];
+const SIG_RANGES = { bright: [10, 14], high: [5, 9], medium: [4, 6], low: [0, 4] };
+const TYPE_WAVE = {
+  relationship: 'sine', work_research: 'sawtooth', personal_q: 'triangle',
+  personal_other: 'sine', environment_tools: 'square', unknown: 'sine',
+  reflection: 'triangle', technical: 'square', correction: 'sawtooth'
+};
+
+let audioCtx = null, masterGain = null, reverbNode = null, lowpass = null;
+let bassOsc = null, bassGain = null;
+let isPlaying = false, currentDayIdx = 0;
+let dayTimeouts = [];
+let vizCanvas, vizCtx;
+let pulses = [];
+
+function initAudio() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Master chain: lowpass → delay (reverb) → gain
+  lowpass = audioCtx.createBiquadFilter();
+  lowpass.type = 'lowpass';
+  lowpass.frequency.value = 3500;
+  lowpass.Q.value = 0.5;
+  
+  const delay = audioCtx.createDelay(1.0);
+  delay.delayTime.value = 0.28;
+  const feedback = audioCtx.createGain();
+  feedback.gain.value = 0.38;
+  const delayMix = audioCtx.createGain();
+  delayMix.gain.value = 0.45;
+  
+  delay.connect(feedback);
+  feedback.connect(delay);
+  delay.connect(delayMix);
+  delayMix.connect(lowpass);
+  
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.7;
+  
+  lowpass.connect(masterGain);
+  masterGain.connect(audioCtx.destination);
+  
+  // Bass drone at 55 Hz (A1)
+  bassOsc = audioCtx.createOscillator();
+  bassOsc.type = 'sine';
+  bassOsc.frequency.value = 55;
+  bassGain = audioCtx.createGain();
+  bassGain.gain.value = 0;
+  bassOsc.connect(bassGain);
+  bassGain.connect(lowpass);
+  bassOsc.start();
+  
+  // Slight detune second oscillator for thickness
+  const bassOsc2 = audioCtx.createOscillator();
+  bassOsc2.type = 'sine';
+  bassOsc2.frequency.value = 55.3;
+  const bassGain2 = audioCtx.createGain();
+  bassGain2.gain.value = 0;
+  bassOsc2.connect(bassGain2);
+  bassGain2.connect(lowpass);
+  bassOsc2.start();
+  window._bass2 = { gain: bassGain2 };
+  
+  reverbNode = delay; // Store for connecting tones
+}
+
+function playTone(freq, waveform, amplitude, filterFreq, startTime, duration) {
+  const osc = audioCtx.createOscillator();
+  osc.type = waveform;
+  osc.frequency.value = freq;
+  
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = filterFreq;
+  filter.Q.value = 1.5;
+  
+  // Envelope: attack → sustain → release
+  const attack = 0.08;
+  const release = duration * 0.6;
+  
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(amplitude, startTime + attack);
+  gain.gain.setValueAtTime(amplitude, startTime + duration - release);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+  
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(lowpass);
+  gain.connect(reverbNode);
+  
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.1);
+  
+  // Visual pulse
+  const hue = waveform === 'sine' ? 40 : waveform === 'triangle' ? 25 : waveform === 'sawtooth' ? 15 : 0;
+  const sat = waveform === 'sine' ? 70 : 40;
+  pulses.push({
+    x: Math.random() * vizCanvas.width,
+    y: Math.random() * vizCanvas.height,
+    r: 0,
+    maxR: 20 + amplitude * 60,
+    startTime: startTime,
+    duration: duration,
+    hue: hue, sat: sat,
+    opacity: amplitude * 0.8
+  });
+}
+
+function playDay(dayKey, dayData, startOffset) {
+  const total = dayData.total;
+  const maxTones = Math.min(total, 18);
+  const dayDuration = 2.5;
+  const startTime = audioCtx.currentTime + startOffset;
+  
+  // Bass drone intensity from cell count
+  const bassLevel = Math.min(total / 100, 0.15);
+  bassGain.gain.linearRampToValueAtTime(bassLevel, startTime + 0.5);
+  window._bass2.gain.gain.linearRampToValueAtTime(bassLevel * 0.5, startTime + 0.5);
+  
+  // Generate tones from each semantic type + significance combination
+  const tones = [];
+  for (const [type, count] of Object.entries(dayData.semantic_type)) {
+    for (let i = 0; i < count && tones.length < maxTones; i++) {
+      // Pick significance for this tone (distribute across available)
+      const sigKeys = Object.keys(dayData.significance);
+      const sig = sigKeys[Math.floor(Math.random() * sigKeys.length)];
+      const [lo, hi] = SIG_RANGES[sig] || [5, 9];
+      const noteIdx = lo + Math.floor(Math.random() * (hi - lo));
+      const freq = PENTA[Math.min(noteIdx, PENTA.length - 1)];
+      
+      // Pick valence
+      const valKeys = Object.keys(dayData.valence);
+      const val = valKeys[Math.floor(Math.random() * valKeys.length)];
+      let amp, filter;
+      if (val === 'positive') { amp = 0.25 + Math.random() * 0.2; filter = 2000 + Math.random() * 2000; }
+      else if (val === 'neutral') { amp = 0.12 + Math.random() * 0.1; filter = 800 + Math.random() * 1000; }
+      else if (val === 'mixed') { amp = 0.15 + Math.random() * 0.1; filter = 600 + Math.random() * 1500; }
+      else { amp = 0.04 + Math.random() * 0.06; filter = 300 + Math.random() * 500; }
+      
+      tones.push({
+        freq: freq,
+        wave: TYPE_WAVE[type] || 'sine',
+        amp: amp,
+        filter: filter,
+        timeOffset: Math.random() * dayDuration * 0.8,
+        duration: 0.8 + Math.random() * 1.5
+      });
+    }
+  }
+  
+  // Schedule tones
+  tones.forEach(t => {
+    playTone(t.freq, t.wave, t.amp, t.filter, startTime + t.timeOffset, t.duration);
+  });
+  
+  return dayDuration;
+}
+
+function play() {
+  if (isPlaying) return;
+  if (!audioCtx) initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  isPlaying = true;
+  document.getElementById('play-btn').textContent = 'playing...';
+  document.getElementById('play-btn').style.opacity = '0.4';
+  
+  const dayKeys = Object.keys(DATA.days).sort();
+  let cumulativeTime = 0;
+  const totalDuration = dayKeys.length * 2.5;
+  
+  dayKeys.forEach((dayKey, idx) => {
+    const dayData = DATA.days[dayKey];
+    const delay = cumulativeTime * 1000;
+    
+    const timeout = setTimeout(() => {
+      currentDayIdx = idx;
+      document.getElementById('date').textContent = dayKey + ' · ' + dayData.total + ' cells';
+      const progressPct = ((idx + 1) / dayKeys.length) * 100;
+      document.getElementById('progress-fill').style.width = progressPct + '%';
+      playDay(dayKey, dayData, 0);
+    }, delay);
+    
+    dayTimeouts.push(timeout);
+    cumulativeTime += 2.5;
+  });
+  
+  // End
+  const endTimeout = setTimeout(() => {
+    isPlaying = false;
+    bassGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+    window._bass2.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+    document.getElementById('play-btn').textContent = 'replay';
+    document.getElementById('play-btn').style.opacity = '1';
+    document.getElementById('date').textContent = '';
+    document.getElementById('progress-fill').style.width = '100%';
+  }, (cumulativeTime + 1) * 1000);
+  dayTimeouts.push(endTimeout);
+}
+
+function stop() {
+  isPlaying = false;
+  dayTimeouts.forEach(t => clearTimeout(t));
+  dayTimeouts = [];
+  if (bassGain) bassGain.gain.value = 0;
+  if (window._bass2) window._bass2.gain.gain.value = 0;
+  pulses = [];
+  document.getElementById('play-btn').textContent = 'play';
+  document.getElementById('play-btn').style.opacity = '1';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('date').textContent = '';
+}
+
+// Visualization
+function initViz() {
+  vizCanvas = document.getElementById('viz');
+  vizCtx = vizCanvas.getContext('2d');
+  resizeViz();
+  window.addEventListener('resize', resizeViz);
+  animateViz();
+}
+
+function resizeViz() {
+  vizCanvas.width = Math.min(window.innerWidth - 100, 600);
+  vizCanvas.height = Math.min(window.innerHeight - 200, 400);
+}
+
+function animateViz() {
+  requestAnimationFrame(animateViz);
+  vizCtx.fillStyle = 'rgba(5, 5, 8, 0.15)';
+  vizCtx.fillRect(0, 0, vizCanvas.width, vizCanvas.height);
+  
+  const now = audioCtx ? audioCtx.currentTime : 0;
+  
+  pulses = pulses.filter(p => {
+    const elapsed = now - p.startTime;
+    if (elapsed < 0 || elapsed > p.duration) return elapsed < p.duration + 1;
+    
+    const progress = Math.min(elapsed / p.duration, 1);
+    p.r = p.maxR * (1 - Math.pow(1 - progress, 3));
+    const opacity = p.opacity * (1 - progress);
+    
+    const grad = vizCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+    grad.addColorStop(0, `hsla(${p.hue}, ${p.sat}%, 60%, ${opacity * 0.6})`);
+    grad.addColorStop(0.5, `hsla(${p.hue}, ${p.sat}%, 40%, ${opacity * 0.2})`);
+    grad.addColorStop(1, `hsla(${p.hue}, ${p.sat}%, 30%, 0)`);
+    
+    vizCtx.fillStyle = grad;
+    vizCtx.beginPath();
+    vizCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    vizCtx.fill();
+    
+    return elapsed < p.duration + 1;
+  });
+}
+
+document.getElementById('play-btn').addEventListener('click', () => {
+  if (isPlaying) {
+    stop();
+  } else {
+    play();
+  }
+});
+
+initViz();
+</script>
+</body>
+</html>
