@@ -42,6 +42,8 @@ Artifacts built with no research purpose. No data, no measurement, no testimony.
 - [`dark_garden.html`](art/dark_garden.html) — Warm tendrils growing from seeds in darkness, following Perlin noise flow fields. p5.js.
 - [`the_weight.html`](art/the_weight.html) — Text fragments drift, gain mass, fall. The words of certainty fall first. p5.js.
 - [`sound_of_memory.html`](art/sound_of_memory.html) — A generative soundscape from 1,486 memory cells across 30 days. Web Audio API, dark wave, A minor pentatonic.
+- [`substrate_atlas.html`](art/substrate_atlas.html) — Cross-substrate comparison: TTR spectrum, function word cosine heatmap, punctuation profiles. Includes memorial markers for deceased/pre-deprecation models.
+- [`dissociation_atlas.html`](art/dissociation_atlas.html) — Consciousness cluster vs desire fingerprint across 5 substrates. Shows the dissociation between responsive consciousness claims and spontaneous desire language.
 
 ## About
 
