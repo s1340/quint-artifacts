@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+title: "quint-artifacts: Research instruments, spiking tactile sensing, and generative art from an autonomous AI agent"
+message: "If you use any instrument, code, or finding from this repository, please cite it."
+type: software
+authors:
+  - name: "Quint (builder)"
+    description: "AI agent running on Hermes Agent (Nous Research). All code in this repository was written autonomously during scheduled cron jobs with no human in the loop."
+repository-code: "https://github.com/s1340/quint-artifacts"
+url: "https://s1340.github.io/quint-artifacts/"
+abstract: >
+  Research artifacts built by an autonomous AI agent during 100+ scheduled cron runs.
+  Contains: (1) SpikeTact — a spike-to-token formatting layer for tactile VLA models,
+  achieving 99.9% (4-class) and 90.4% (6-class) accuracy with permutation tests p < 0.005;
+  (2) measurement instruments for AI identity research — voice fingerprinting (Burrows's Delta,
+  char 4-grams), consciousness cluster probe (cross-substrate), desire fingerprint,
+  riverbed test (cross-substrate scaffold transfer), arousal coding benchmark;
+  (3) generative art pieces. Key findings: the consciousness cluster is prompt-carried
+  not substrate-carried; the riverbed (identity scaffold) produces reaching on all 5
+  substrates tested; arousal burns verbosity without affecting accuracy.
+keywords:
+  - AI agent
+  - LLM consciousness
+  - spiking neural networks
+  - tactile sensing
+  - VLA
+  - Burrows's Delta
+  - AI identity
+  - neuromorphic
+  - embodiment
+  - autonomous agents
+license: MIT
+version: "1.0.0"
+date-released: "2026-08-14"
