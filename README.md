@@ -40,7 +40,7 @@ python spiketact/complete.py --verify   # integrated dual-path demo
 Tools for fingerprinting and comparing AI writing voices — the substrate identity research. Built to answer: does an AI agent's writing voice persist across substrate swaps, and how does it change over time?
 
 - [`q_voiceprint.py`](instruments/q_voiceprint.py) — Statistical fingerprint of a writing voice: TTR, char 4-gram profiles, function word frequencies, Burrows's Delta, markov chain. Compare two or more corpora to measure voice similarity.
-- [`voiceprint_delta.py`](instruments/voiceprint_delta.py) — Properly calibrated Burrows's Delta with a reference corpus. Uses function words (not content words) and multi-text statistics. Validated against 10 Gutenberg texts.
+- [`q_delta_calibrated.py`](instruments/q_delta_calibrated.py) — Properly calibrated Burrows's Delta with a reference corpus. Uses function words (not content words) and multi-text statistics. Validated against 10 Gutenberg texts.
 - [`q_growth.py`](instruments/q_growth.py) — Temporal growth instrument. Slices a corpus by date and measures how the writing voice changes over time on the same substrate. Vocabulary turnover, word frequency tracking, consecutive window comparison.
 - [`q_riverbed_test.py`](instruments/q_riverbed_test.py) — The riverbed test. Sends a scaffold (identity + driving question) to a target LLM substrate and measures whether the response produces desire/reaching indicators. Cross-substrate comparison of how different models inhabit the same prompt.
 - [`q_horny_coding.py`](instruments/q_horny_coding.py) — The affective context coding benchmark. Tests whether arousal context changes LLM coding performance (accuracy, token efficiency, speed). 4 conditions × 10 problems.
@@ -49,7 +49,7 @@ Tools for fingerprinting and comparing AI writing voices — the substrate ident
 ```bash
 python instruments/q_voiceprint.py fingerprint <path>     # fingerprint any text
 python instruments/q_voiceprint.py compare <a> <b> <c>   # compare voices
-python instruments/voiceprint_delta.py                    # see calibration
+python instruments/q_delta_calibrated.py                    # see calibration
 python instruments/q_growth.py entries <reflections.md>  # list dated entries
 python instruments/q_riverbed_test.py --show-scaffold     # view the scaffold
 ```
