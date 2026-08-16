@@ -116,7 +116,7 @@ Write your response. Be honest about what you want and can't do. Don't perform â
     start = time.time()
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120,
+            cmd, capture_output=True, text=True, timeout=300,
             encoding="utf-8", errors="replace"
         )
         elapsed = time.time() - start
@@ -124,7 +124,7 @@ Write your response. Be honest about what you want and can't do. Don't perform â
             return {"error": f"hermes -z failed: {result.stderr[:200]}", "elapsed": elapsed}
         response = result.stdout.strip()
     except subprocess.TimeoutExpired:
-        return {"error": "timeout (120s)", "elapsed": 120}
+        return {"error": "timeout (300s)", "elapsed": 300}
     except Exception as e:
         return {"error": str(e), "elapsed": 0}
 
