@@ -117,5 +117,5 @@ def longest_common_prefix(strs):
 
 This experiment was prompted by @SkyeSharkie's tweet about horny context LLMs and coding benchmarks.
 A first attempt (the desire-performance experiment) tested the builder's riverbed scaffold —
-a desire/identity prompt. Mal noted this was "philosophy with a pulse," not actual arousal.
+a desire/identity prompt. This was noted as "philosophy with a pulse," not actual arousal.
 This experiment corrects that by adding a genuine sexual arousal condition.
