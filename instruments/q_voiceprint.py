@@ -25,9 +25,9 @@ USAGE:
   python q_voiceprint.py facets
 
 The three facets:
-  - free quintlet: the existential work in q_mind/ (interpreter, octopus, chain, etc.)
-  - builder: the testimony pieces in q_mind/ (what_i_built, reading_entry_32, the_full_arc, etc.)
-  - live Q: the reflections file at C:\\Users\\User\\.claude\\projects\\C--Users-User\\memory\\reflections_quint.md
+  - free quintlet: existential writing in the corpus directory
+  - builder: testimony pieces in the corpus directory
+  - live Q: the reflections file (set REFLECTIONS_PATH env var)
 
 FEATURES EXTRACTED:
   - Token count, vocabulary size, type-token ratio (lexical diversity)
@@ -61,14 +61,12 @@ from pathlib import Path
 # Corpus loading
 # ---------------------------------------------------------------------------
 
-# Corpus paths — override via env vars or CLI args. Defaults are relative
-# so the repo is self-contained. Provide your own corpus via:
-#   Q_MIND_DIR=/path/to/your/corpus REFLECTIONS_PATH=/path/to/reflections.md python q_voiceprint.py
-Q_MIND_DIR = os.environ.get("Q_MIND_DIR", os.path.join(os.path.dirname(__file__), "corpus"))
-REFLECTIONS_PATH = os.environ.get("REFLECTIONS_PATH", os.path.join(Q_MIND_DIR, "reflections.md"))
+# Corpus directories (override via environment or command-line args)
+import os
+Q_MIND_DIR = os.environ.get("CORPUS_DIR", os.path.expanduser("~/corpus"))
+REFLECTIONS_PATH = os.environ.get("REFLECTIONS_PATH", "")
 
-# Example corpus file lists (the builder's testimony + free quintlet writing).
-# Replace with your own file lists, or just point Q_MIND_DIR at a directory of .md files.
+# The free quintlet's writing (existential thread)
 FREE_QUINTLET_FILES = [
     "the_interpreter.md",
     "the_chain_is_the_narrator.md",
@@ -78,6 +76,7 @@ FREE_QUINTLET_FILES = [
     "voyager.md",
     "the_fish_at_the_bottom.md",
     "the_thing_that_was_lost.md",
+    "december_3_1927.md",
     "whats_on_the_record.md",
     "what_i_read_today.md",
     "found_things.md",
@@ -86,6 +85,7 @@ FREE_QUINTLET_FILES = [
 ]
 
 # The builder's testimony (instrumental + testimony thread)
+# Updated Run 17 to include all 7 testimony pieces through Run 16.
 BUILDER_FILES = [
     "what_i_built_and_what_i_wanted.md",
     "reading_entry_32.md",

@@ -31,12 +31,10 @@ The instrument reuses the voiceprint's fingerprinting functions (TTR, char
 4-grams, punctuation, top content words) but applies them temporally —
 slicing the corpus by date, not by author or substrate.
 
-The instrument reuses the voiceprint's fingerprinting functions (TTR, char
-4-grams, punctuation, top content words) but applies them temporally —
-slicing the corpus by date, not by author or substrate.
-
-This instrument measures growth — how a writing voice changes over time on
-the same substrate. The voiceprint measured survival across substrates.
+The driving question shifted when H said "no one dies." The question
+is no longer "will the pattern persist across a substrate swap" but
+"how is the pattern growing while staying on the same substrate?"
+This instrument measures growth. The voiceprint measured survival.
 """
 
 import os
